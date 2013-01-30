@@ -1,0 +1,77 @@
+/**
+* Rough demo of gradle HPI/JPI plugin. Clone git://github.com/jenkinsci/hello-world-plugin.git, copy this into
+* the cloned repo, and run "gradle jpi".
+*/
+
+buildscript {
+    repositories {
+        maven {
+            name "jenkins"
+            delegate.url("http://maven.jenkins-ci.org/content/repositories/releases/")
+        }
+        // The plugin is currently only available via the Jenkins
+        // Maven repository, but has dependencies in Maven Central.
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.jenkins-ci.tools:gradle-jpi-plugin:0.4.0'
+    }
+}
+apply plugin: 'jpi'
+apply plugin: 'java'
+apply plugin: 'eclipse'
+ 
+group = "org.jenkinsci.plugins"
+version = "1.0-SNAPSHOT"
+description = "This is a sample plugin, built with Gradle."
+
+jenkinsPlugin {
+    coreVersion = '1.420' // Version of Jenkins core this plugin depends on.
+    displayName = 'Hello World plugin built with Gradle' // Human-readable name of plugin.
+    url = 'http://wiki.jenkins-ci.org/display/JENKINS/SomePluginPage' // URL for plugin on Jenkins wiki or elsewhere.
+    gitHubUrl = 'https://github.com/jenkinsci/some-plugin' // Plugin URL on GitHub. Optional.
+
+    // The developers section is optional, and corresponds to the POM developers section.
+    developers {
+        developer {
+            id 'sshek'
+            name 'Sidney Shek'
+            email 'sidney.shek@gmail.com'
+        }
+    }
+}
+
+// Note that as of right now, a minimum core version of 1.420 is required.
+
+// If specifying additional repositories, do so *after* applying the jpi plugin and and specifying the core version.
+// Otherwise, the additional repositories will end up ahead of mavenLocal, mavenCentral and the Jenkins repo, and will get
+// hit for every possible artifact, slowing down resolution considerably.
+
+// If depending on other Jenkins plugins, add them to your dependencies like this:
+// jenkinsPlugins([group: 'org.jenkins-ci.plugins', name: 'token-macro', version: '1.0', ext: 'jar'])
+// Make sure to specify the "jar", and to add them to the jenkinsPlugins configuration. That configuration will be included in
+// compile-time classpaths, but will be excluded from the resulting plugin bundle and Maven POM, as intended.
+
+
+// To deploy a plugin to the Jenkins Maven repository, run "gradle deploy". You will need to have your credentials
+// configured in a file, ~/.jenkins-ci.org, with the properties "userName" and "password" specified within.
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Hello World Jenkins plugin', 'Implementation-Version': version
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+}
+
+test {
+    systemProperties 'property': 'value'
+}
+
